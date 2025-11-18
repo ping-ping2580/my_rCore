@@ -1,18 +1,24 @@
 // os/src/lang_item.rs
 use crate::sbi::shutdown;
 use core::panic::PanicInfo;
+// #[panic_handler]
+// fn panic(info: &PanicInfo) -> ! {
+//     if let Some(location) = info.location() {
+//         println!(
+//             "[kernel] Panicked at {}:{}:{}",
+//             location.file(),
+//             location.line(),
+//             location.column()
+//         );
+//     } else {
+//         println!("Panicked: {}", info.message().unwrap());
+//     }
+   
+//     shutdown(true);
+// }
+
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    if let Some(location) = info.location() {
-        println!(
-            "[kernel] Panicked at {}:{}:{}",
-            location.file(),
-            location.line(),
-            location.column()
-        );
-    } else {
-        println!("Panicked: {}", info.message().unwrap());
-    }
-   
-    shutdown(true);
+    println!("[kernel] PANIC: {info}");
+    crate::sbi::shutdown(true)
 }

@@ -1,10 +1,39 @@
 // src/main.rs
 #![no_std]
 #![no_main]
+// ====================  println! 宏开始 ====================
+use core::fmt::{self, Write};
+
+struct Stdout;
+
+impl Write for Stdout {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for &ch in s.as_bytes() {
+            crate::sbi::console_putchar(ch as usize);
+        }
+        Ok(())
+    }
+}
+
+pub fn print(args: fmt::Arguments) {
+    Stdout.write_fmt(args).unwrap();
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => (print!("\n"));
+    ($($arg:tt)*) => (print!("{}\n", format_args!($($arg)*)));
+}
+// ==================== println! 宏结束 ====================
+
 
 mod lang_items;
 mod sbi;
-mod lib;
 
 use core::arch::global_asm;
 global_asm!(include_str!("entry.asm"));
@@ -19,7 +48,7 @@ fn clear_bss() {
         core::ptr::write_bytes(
             sbss as *mut u8,
             0,
-            (ebss as usize) - (sbss as usize),
+            (ebss as *const () as usize) - (sbss as *const () as usize),
         );
     }
 }
